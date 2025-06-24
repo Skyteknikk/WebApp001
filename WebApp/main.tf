@@ -20,51 +20,41 @@ resource "azurerm_storage_account" "tfstate" {
 
 resource "azurerm_storage_container" "tfstate" {
   name                  = "tfstate"
-  storage_account_name  = azurerm_storage_account.tfstate.name
+  storage_account_id    = azurerm_storage_account.tfstate.id
   container_access_type = "private"
 }
 
 #End Backend block
 ##########################################################
 
-# App Service Plan
+# Azure Service Plan
 ##########################################################
 
-resource "azurerm_app_service_plan" "app_service_plan" {
-  name                = var.app_service_plan_name
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  sku {
-    tier = "Standard"
-    size = var.app_service_plan_sku
-  }
-
-  kind = "Linux"
-  reserved = true
+resource "azurerm_service_plan" "service_plan" {
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
+  name  = var.service_plan_name
+  os_type             = "Windows"
+  sku_name            = var.service_plan_sku 
 }
 
 # Web App
 ############################################################
-resource "azurerm_linux_web_app" "webapp" {
-  name                = "LinuxWebApp${random_id.suffix.hex}"
+
+resource "azurerm_windows_web_app" "webapp" {
+  name                = "WebApp${random_id.suffix.hex}"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  service_plan_id     = azurerm_app_service_plan.app_service_plan.id
+  service_plan_id     = azurerm_service_plan.service_plan.id
 
   site_config {
-    linux_fx_version = "DOTNETCORE|6.0"
-    ftps_state       = "FtpsOnly"
-    minimum_tls_version = "1.2"
-    always_on = true
-  }
-  app_settings = {
-    "WEBSITE_RUN_FROM_PACKAGE" = "1"
-   }
+    ftps_state            = "FtpsOnly"
+    minimum_tls_version   = "1.2"
+    always_on             = true
   }
 
-  identity {
-    type = "SystemAssigned"
+  app_settings = {
+    "WEBSITE_RUN_FROM_PACKAGE" = "1"
   }
 
   https_only = true
@@ -81,55 +71,35 @@ resource "random_id" "suffix" {
 # SQL Server
 #############################################################
 
-
-resource "azurerm_sql_server" "sql_server" {
+resource "azurerm_mssql_server" "sql_server" {
   name                         = "sqlserver${random_id.suffix.hex}" #var.sql_server_name
   resource_group_name          = azurerm_resource_group.main.name
   location                     = azurerm_resource_group.main.location
   version                      = "12.0"
   administrator_login          = var.sql_admin
   administrator_login_password = var.sql_password
-
-  identity {
-    type = "SystemAssigned"
-  }
 }
 
-# SQL Database
-###############################################################
-resource "azurerm_sql_database" "sql_db" {
-  name           = var.sql_db_name
-  server_id      = azurerm_sql_server.sql_server.id
-  sku_name       = "S0"
-  collation      = "SQL_Latin1_General_CP1_CI_AS"
-  max_size_gb    = 4
-
-  server_name         = azurerm_sql_server.sql_server.name
-  requested_service_objective_name = "Basic"  # Cost-effective
-  
-  tags = {
-    db = "prod-db"
-  }
-
-  identity {
-    type         = "SystemAssigned"
-  }
-
-  transparent_data_encryption_key_vault_key_id = azurerm_key_vault_key.kv.id
-
-  # prevent the possibility of accidental data loss
-  lifecycle {
-    prevent_destroy = true
-  }
+data "azurerm_mssql_database" "sql_db" {
+  name      = var.sql_db_name
+  server_id = azurerm_mssql_server.sql_server.id
+ # sku_name  = "S0"
+ #collation = "SQL_Latin1_General_CP1_CI_AS"
+ #max_size_gb = 4
+ #transparent_data_encryption_key_vault_key_id = azurerm_key_vault_key.generated.id
 }
+
+output "database_id" {
+  value = data.azurerm_mssql_database.sql_db.id
+}
+
 
 # Allow Azure services to access SQL
-resource "azurerm_sql_firewall_rule" "allow_azure_services" {
+resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
   name                = "AllowAzureServices"
-  resource_group_name = azurerm_resource_group.main.name
-  server_name         = azurerm_sql_server.sql_server.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+  server_id        = azurerm_mssql_server.sql_server.id
+  start_ip_address    = "10.0.0.0"
+  end_ip_address      = "10.0.0.0"
 }
 
 
@@ -139,19 +109,62 @@ resource "azurerm_sql_firewall_rule" "allow_azure_services" {
 
 resource "azurerm_key_vault" "kv" {
   name                        = var.key_vault_name
-  location                    = var.location
+  location                    = azurerm_resource_group.main.location
   resource_group_name         = azurerm_resource_group.main.name
+  enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "standard"
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
 
-  soft_delete_enabled         = true
-  purge_protection_enabled    = true
+  sku_name = "standard"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
-    secret_permissions = ["get", "set", "list", "delete"]
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+      "SetRotationPolicy"
+    ]
+
+    secret_permissions = [
+      "Get", "Set", "List", "Delete","Recover","Backup","Restore","Purge"
+    ]
+
+    storage_permissions = [
+      "Get",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "generated" {
+  name         = "generated-certificate"
+  key_vault_id = azurerm_key_vault.kv.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  rotation_policy {
+    automatic {
+      time_before_expiry = "P30D"
+    }
+
+    expire_after         = "P90D"
+    notify_before_expiry = "P29D"
   }
 }
 
@@ -161,14 +174,11 @@ resource "azurerm_key_vault_secret" "sql_password" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
-resource "azurerm_key_vault_key" "kv" {
-  name         = "sql-tde-key"
-  key_vault_id = azurerm_key_vault.kv.id
-  key_type     = "RSA"
-  key_size     = 2048
-}
 
 data "azurerm_client_config" "current" {}
+
+#Virtual network
+######################################################
 
 resource "azurerm_virtual_network" "vnet" {
   name                = "secure-vnet"
@@ -197,9 +207,10 @@ resource "azurerm_application_gateway" "appgw" {
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
+#### Supported SKU tiers are Standard_v2,WAF_v2.
   sku {
     name     = "WAF_Medium"
-    tier     = "WAF"
+    tier     = "WAF_v2" 
     capacity = 2
   }
 
@@ -238,9 +249,16 @@ resource "azurerm_application_gateway" "appgw" {
   }
 
   url_path_map {
-    name                           = "pathMap"
-    default_backend_address_pool_name = "backendPool"
+    name                               = "pathMap"
+    default_backend_address_pool_name  = "backendPool"
     default_backend_http_settings_name = "httpSettings"
+
+    path_rule {
+      name                       = "default-rule"
+      paths                      = ["/*"]
+      backend_address_pool_name  = "backendPool"
+      backend_http_settings_name = "httpSettings"
+    }
   }
 
   request_routing_rule {
@@ -257,6 +275,16 @@ resource "azurerm_application_gateway" "appgw" {
     rule_set_type    = "OWASP"
     rule_set_version = "3.2"
   }
+}
+
+# Creates Log Anaylytics Workspace
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace
+resource "azurerm_log_analytics_workspace" "metrix" {
+  name                = var.log_analytics_workspace_name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 

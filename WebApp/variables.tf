@@ -1,3 +1,32 @@
+#Azure Credentials
+#############################################################
+variable "subscription_id" {
+  description = "Azure Subscription ID"
+  type        = string
+}
+
+variable "tenant_id" {
+  description = "Azure Tenant ID"
+  type        = string
+}
+
+variable "client_id" {
+  description = "Azure Client ID"
+  type        = string
+}
+
+variable "client_secret" {
+  description = "Azure Client Secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "resource_group_location" {
+  description = "Azure region for resource deployment"
+  type        = string
+}
+
+
 
 # Global Configuration
 ###############################################################
@@ -5,12 +34,6 @@ variable "resource_group_name" {
   description = "Name of the Azure Resource Group"
   type        = string
   default     = "webapp-secure-rg"
-}
-
-variable "resource_group_location" {
-  description = "Azure region for resource deployment"
-  type        = string
-  default     = "eastus"
 }
 
 # Terraform State Backend Using Azure Storage
@@ -23,13 +46,13 @@ variable "azurerm_storage_account_name" {
 
 # App Service Plan
 ###############################################################
-variable "app_service_plan_name" {
+variable "service_plan_name" {
   description = "Name of the App Service Plan"
   type        = string
   default     = "webapp-serviceplan"
 }
 
-variable "app_service_plan_sku" {
+variable "service_plan_sku" {
   description = "SKU size for the App Service Plan"
   type        = string
   default     = "S1"
@@ -87,4 +110,10 @@ variable "application_name" {
   description = "Name of the application"
   type        = string
   default     = "WebApp1"
+}
+
+variable "log_analytics_workspace_name"{
+  description = "log analytice workspace name"
+  type        = string
+  default     = "WebAppLogSpace"
 }
