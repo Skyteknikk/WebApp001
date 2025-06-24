@@ -167,17 +167,13 @@ ARM_TENANT_ID
 
 Then replace hardcoded auth values in terraform.tfvars with:
 
-hcl
-Copier
-Modifier
 client_id        = var.client_id
 client_secret    = var.client_secret
 subscription_id  = var.subscription_id
 tenant_id        = var.tenant_id
 In deploy.yml, inject secrets as environment variables if needed.
 
-✅ Done
-Now, whenever you push to the main branch, GitHub Actions will:
+Whenever you push to the main branch, GitHub Actions will:
 
 Run Terraform
 
