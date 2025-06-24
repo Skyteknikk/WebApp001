@@ -3,7 +3,7 @@ name: Terraform
 on:
   push:
     paths:
-      - 'infrastructure/**'
+      - 'WebApp/**'
     branches:
       - main
 
