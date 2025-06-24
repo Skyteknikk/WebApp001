@@ -13,7 +13,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: infrastructure  # ✅ Set your Terraform config path here
+        working-directory: WebApp  # ✅ Set your Terraform config path here
 
     steps:
       - name: Checkout repository
