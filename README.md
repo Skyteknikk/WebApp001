@@ -1,6 +1,12 @@
 # App Services Basic Architecture
 
-This repository contains the Bicep code to deploy an Azure App Services basic architecture.
+ ![Architectural](image_url "optional title")
+This repository contains terraform code to deploy a stand alone Web app Azure App Services basic architecture.
+
+# Reference for the Architecture
+
+[Basic SetApp](https://learn.microsoft.com/en-us/azure/architecture/web-apps/app-service/architectures/basic-web-app)
+[Enterprise Deployment] (https://learn.microsoft.com/en-us/azure/architecture/web-apps/app-service-environment/architectures/ase-standard-deployment)
 
 ## Deploy
 
@@ -8,11 +14,11 @@ The following are prerequisites.
 
 ## Prerequisites
 
-1. Ensure you have an [Azure Account](https://azure.microsoft.com/free/)
-1. Ensure you have the [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
-1. Ensure you have the [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
+1. Azure Subscription  [Azure Account](https://azure.microsoft.com/free/)
+1. Visual Studio Code [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
+1. GitHub [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
 
-Use the following to deploy the infrastructure.
+Used in this solution are the following infrastructure.
 
 ### Deploy the infrastructure
 
@@ -123,7 +129,8 @@ az group delete --name $RESOURCE_GROUP -y
 ```
 
 
-Architecture
+# Architecture
+
 Diagram that shows a basic App Service architecture.
 
 The diagram shows an Azure App Service connecting directly to an Azure SQL Database. The diagram also shows Azure App Insights and Azure Monitor.
@@ -132,7 +139,8 @@ Figure 1: Basic Azure App Service architecture
 
 Download a Visio file of this architecture.
 
-Workflow
+# Workflow
+
 A user issues an HTTPS request to the App Service's default domain on azurewebsites.net. This domain automatically points to your App Service's built-in public IP. The TLS connection is established from the client directly to app service. The certificate is managed completely by Azure.
 Easy Auth, a feature of Azure App Service, ensures that the user accessing the site is authenticated with Microsoft Entra ID.
 Your application code deployed to App Service handles the request. For example, that code might connect to an Azure SQL Database instance, using a connection string configured in the App Service configured as an app setting.
@@ -149,7 +157,14 @@ The components listed in this architecture link to Azure Well-Architected servic
 
 This basic architecture isn't intended for production deployments. The architecture favors simplicity and cost efficiency over functionality to allow you to evaluate and learn Azure App Service. The following sections outline some deficiencies of this basic architecture, along with recommendations and considerations.
 
-Reliability
+# Security features
+
+It's important to start this process in the PoC phase. As you move toward production, you want the ability to automatically deploy your infrastructure.
+Use different ARM Templates and integrate them with Azure DevOps services. This setup lets you create different environments. For example, you can replicate production-like scenarios or load testing environments only when needed and save on cost.
+For more information, see the DevOps section in Azure Well-Architected Framework.
+
+# Reliability features
+
 Reliability ensures your application can meet the commitments you make to your customers. For more information, see Design review checklist for Reliability.
 
 Because this architecture isn't designed for production deployments, the following outlines some of the critical reliability features that are omitted in this architecture:
@@ -192,7 +207,8 @@ Use managed identity for workload identities. Managed identity eliminates the ne
 
 For some other security considerations, see Secure an app in Azure App Service.
 
-Cost Optimization
+# Cost Optimization features
+
 Cost Optimization is about looking at ways to reduce unnecessary expenses and improve operational efficiencies. For more information, see Design review checklist for Cost Optimization.
 
 This architecture optimizes for cost through the many trade-offs against the other pillars of the Well-Architected Framework specifically to align with the learning and proof-of-concept goals of this architecture. The cost savings compared to a more production-ready architecture, such as the Baseline highly available zone-redundant web application, mainly result from the following choices.
@@ -209,7 +225,8 @@ No private endpoints
 Minimal logs and log retention period in Log Analytics
 To view the estimated cost of this architecture, see the Pricing calculator estimate using this architecture's components. The cost of this architecture can usually be further reduced by using an Azure Dev/Test subscription, which would be an ideal subscription type for proof of concepts like this.
 
-Operational Excellence
+# Operational Excellence
+
 Operational Excellence covers the operations processes that deploy an application and keep it running in production. For more information, see Design review checklist for Operational Excellence.
 
 The following sections provide guidance around configuration, monitoring, and deployment of your App Service application.
@@ -227,7 +244,8 @@ When you move into production, you can maintain your use of both Azure Key Vault
 Containers
 The basic architecture can be used to deploy supported code directly to Windows or Linux instances. Alternatively, App Service is also a container hosting platform to run your containerized web application. App Service offers various built-in containers. If you're using custom or multi-container apps to further fine-tune your runtime environment or to support a code language not natively supported, you'll need to introduce a container registry.
 
-Control plane
+# Control plane
+
 During the POC phase, get comfortable with Azure App Service's control plane as exposed through the Kudu service. This service exposes common deployment APIs, such as ZIP deployments, exposes raw logs and environment variables.
 
 If using containers, be sure to understand Kudu's ability to Open an SSH session to a container to support advanced debugging capabilities.
@@ -238,15 +256,14 @@ During the proof of concept phase, it's important to get an understanding of wha
 Enable diagnostics logging for all items log sources. Configuring the use of all diagnostic settings helps you understand what logs and metrics are provided for you out of the box and any gaps you'll need to close using a logging framework in your application code. When you move to production, you should eliminate log sources that aren't adding value and are adding noise and cost to your workload's log sink.
 Configure logging to use Azure Log Analytics. Azure Log Analytics provides you with a scalable platform to centralize logging that is easy to query.
 Use Application Insights or another Application Performance Management (APM) tool to emit telemetry and logs to monitor application performance.
-Deployment
-The following lists guidance around deploying your App Service application.
 
-Follow the guidance in CI/CD for Azure Web Apps with Azure Pipelines to automate the deployment of your application. Start building your deployment logic in the PoC phase. Implementing CI/CD early in the development process allows you to quickly and safely iterate on your application as you move toward production.
-Use ARM templates to deploy Azure resources and their dependencies. It's important to start this process in the PoC phase. As you move toward production, you want the ability to automatically deploy your infrastructure.
+# Deployment
+
+It's important to start this process in the PoC phase. As you move toward production, you want the ability to automatically deploy your infrastructure.
 Use different ARM Templates and integrate them with Azure DevOps services. This setup lets you create different environments. For example, you can replicate production-like scenarios or load testing environments only when needed and save on cost.
 For more information, see the DevOps section in Azure Well-Architected Framework.
 
-Performance Efficiency
+# Performance Efficiency
 Performance Efficiency is the ability of your workload to meet the demands placed on it by users in an efficient manner. For more information, see Design review checklist for Performance Efficiency.
 
 Because this architecture isn't designed for production deployments, the following outlines some of the critical performance efficiency features that were omitted in this architecture, along with other recommendations and considerations.
@@ -261,11 +278,13 @@ Follow the guidance to scale up individual databases with no application downtim
 
 
 # WebApp01Atea
+
 Atea task on deploying a webapp with Sql server with terraform
 Here is a clean and organized version of the Terraform project to deploy a WebApp and SQL database on Azure, with GitHub Actions CI/CD:
 
-Project Structure
+# Project Structure
 
+```
 webapp-sql-terraform/
 │
 ├── main.tf                # Main infrastructure definitions
@@ -276,27 +295,27 @@ webapp-sql-terraform/
 └── .github/
     └── workflows/
         └── deploy.yml     # GitHub Actions CI/CD workflow
+```
 
 
-Settings → Secrets and variables → Actions → New repository secret
+We set the secrets in Github via Settings → Secrets and variables → Actions → New repository secret
 
 Add:
 
-ARM_CLIENT_ID
+```
+ARM_CLIENT_ID  ..... client_id  
 
-ARM_CLIENT_SECRET
+ARM_CLIENT_SECRET ..... client_secret 
 
-ARM_SUBSCRIPTION_ID
+ARM_SUBSCRIPTION_ID ...... subscription_id
 
-ARM_TENANT_ID
+ARM_TENANT_ID ..... tenant_id 
 
-Then replace hardcoded auth values in terraform.tfvars with:
+```
 
-client_id        = var.client_id
-client_secret    = var.client_secret
-subscription_id  = var.subscription_id
-tenant_id        = var.tenant_id
 In deploy.yml, inject secrets as environment variables if needed.
+
+## Automatic Deployement logic
 
 Whenever you push to the main branch, GitHub Actions will:
 
@@ -306,7 +325,6 @@ Deploy the WebApp and SQL DB to Azure
 
 Print the WebApp URL in the GitHub Actions log
 
-Would you like a downloadable ZIP or a GitHub template repo version?
 
 
 
