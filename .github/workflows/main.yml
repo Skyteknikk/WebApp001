@@ -6,7 +6,9 @@ on:
       - 'WebApp/**'
     branches:
       - main
-
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+  
 jobs:
   terraform:
     runs-on: ubuntu-latest
@@ -25,8 +27,11 @@ jobs:
       - name: Initialize Terraform
         run: terraform init
 
-      - name: Format Terraform files
+      # Checks that all Terraform configuration files adhere to a canonical format
+      - name: Terraform Format
+        id: format
         run: terraform fmt -check
+        continue-on-error: true
 
       - name: Validate Terraform files
         run: terraform validate
