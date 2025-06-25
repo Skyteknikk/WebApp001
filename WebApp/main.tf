@@ -209,8 +209,8 @@ resource "azurerm_application_gateway" "appgw" {
 
 #### Supported SKU tiers are Standard_v2,WAF_v2.
   sku {
-    name     = "WAF_Medium"
-    tier     = "WAF_v2" 
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
     capacity = 2
   }
 
