@@ -1,4 +1,4 @@
-# App Services Basic Architecture
+# Solution Architecture Diagram
 
  ![Architectural](https://github.com/Skyteknikk/WebApp001/blob/main/Solution.jpg)
 This repository contains terraform code to deploy a stand alone Web app Azure App Services basic architecture.
@@ -10,17 +10,8 @@ This repository contains terraform code to deploy a stand alone Web app Azure Ap
 
 [Best Practices] (https://learn.microsoft.com/en-us/azure/well-architected/service-guides/app-service-web-apps)
 
-# Architecture
 
-Diagram that shows a basic App Service architecture.
-
-The diagram shows an Azure App Service connecting directly to an Azure SQL Database. The diagram also shows Azure App Insights and Azure Monitor.
-
-Figure 1: Basic Azure App Service architecture
-
-Download a Visio file of this architecture.
-
-# Workflow
+# App Logic Workflow
 
 A user issues an HTTPS request to the App Service's default domain on azurewebsites.net. This domain automatically points to your App Service's built-in public IP. 
 The TLS connection is established from the client directly to app service. The certificate is managed completely by Azure.
@@ -29,7 +20,7 @@ connect to an Azure SQL Database instance, using a connection string configured 
 The information about original request to App Service and the call to Azure SQL Database are logged in Application Insights.
 Components
 
-Authentication with Microsoft Entra Id
+# Authentication with Microsoft Entra Id
 
 Microsoft Entra ID is a cloud-based identity and access management service. 
 It provides a single identity control plane to manage permissions and roles for users accessing your web application. 
