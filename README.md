@@ -1,6 +1,6 @@
 # App Services Basic Architecture
 
- ![Architectural](https://github.com/Skyteknikk/WebApp001/blob/main/Solution.jpg"Solution Architecture")
+ ![Architectural](https://github.com/Skyteknikk/WebApp001/blob/main/Solution.jpg)
 This repository contains terraform code to deploy a stand alone Web app Azure App Services basic architecture.
 
 # Reference for the Architecture
